@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focaccia Recipe Calculator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #fdf6e3;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 420px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #b5651d;
+        }
+        p.subtitle {
+            color: #666;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus { border-color: #b5651d; }
+        table {
+            width: 100%;
+            margin-top: 24px;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+        }
+        th { color: #888; font-size: 0.85rem; text-transform: uppercase; }
+        td.amount { text-align: right; font-weight: 600; font-size: 1.05rem; }
+        tr:last-child td { border-bottom: none; }
+        .emoji { margin-right: 8px; }
+        .total {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fdf6e3;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-align: right;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+            background: #fff;
+        }
+        select:focus { border-color: #b5651d; }
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            background: #eee;
+            border-radius: 8px 8px 0 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #666;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tab.active {
+            background: #b5651d;
+            color: #fff;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .method ol {
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+        .method li {
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🍞 Focaccia Calculator</h1>
+        <p class="subtitle">Enter your flour amount to scale the recipe</p>
+        <div class="tabs">
+            <button class="tab active" data-tab="ingredients">Ingredients Calculator</button>
+            <button class="tab" data-tab="method">Method</button>
+        </div>
+        <div id="tab-ingredients" class="tab-content active">
+            <label for="recipe">Recipe</label>
+            <select id="recipe">
+                <option value="grand-hotel">The Grand Hotel Cookery School</option>
+                <option value="bon-appetit">Bon Appetit (Sarah Jampel)</option>
+            </select>
+            <label for="flour">Flour (grams)</label>
+            <input type="number" id="flour" value="500" min="1" step="1">
+            <table>
+                <thead>
+                    <tr><th>Ingredient</th><th style="text-align:right">Amount (g)</th></tr>
+                </thead>
+                <tbody id="results"></tbody>
+            </table>
+            <div class="total" id="hydration"></div>
+            <div class="total" id="total"></div>
+        </div>
+        <div id="tab-method" class="tab-content method">
+            <ol>
+                <li>Mix the warm water, sugar, and yeast in a bowl. Let it sit for 5–10 minutes until frothy.</li>
+                <li>In a large bowl, combine flour and salt. Pour in the yeast mixture and olive oil. Stir until a shaggy dough forms.</li>
+                <li>Cover and let the dough rise in a warm place for 1–2 hours until doubled in size.</li>
+                <li>Oil a baking tray generously. Transfer the dough and stretch it to fill the tray. Drizzle more oil on top.</li>
+                <li>Dimple the surface with your fingertips. Optionally top with flaky salt, rosemary, or olives.</li>
+                <li>Let it rest for 20–30 minutes for a final rise.</li>
+                <li>Bake at 220°C (425°F) for 20–25 minutes until golden brown on top.</li>
+                <li>Remove from oven and let cool slightly before slicing. Enjoy!</li>
+            </ol>
+        </div>
+    </div>
+    <script>
+        const recipes = {
+            'grand-hotel': {
+                name: 'The Grand Hotel Cookery School',
+                ratios: {
+                    water: 340 / 500,
+                    sugar: 20 / 500,
+                    salt: 10 / 500,
+                    yeast: 10 / 500,
+                    oil: 30 / 500
+                }
+            },
+            'bon-appetit': {
+                name: 'Bon Appetit (Sarah Jampel)',
+                ratios: {
+                    water: 592 / 625,
+                    honey: 14 / 625,
+                    salt: 15 / 625,
+                    yeast: 7 / 625,
+                    oil: 82 / 625
+                }
+            }
+        };
+
+        const emojis = {
+            flour: '🌾',
+            water: '💧',
+            sugar: '🍬',
+            honey: '🍯',
+            salt: '🧂',
+            yeast: '🫧',
+            oil: '🫒'
+        };
+
+        function calculate() {
+            const recipeKey = document.getElementById('recipe').value;
+            const ratios = recipes[recipeKey].ratios;
+            const flour = parseFloat(document.getElementById('flour').value) || 0;
+            const ingredients = { flour };
+            for (const [name, ratio] of Object.entries(ratios)) {
+                ingredients[name] = Math.floor(flour * ratio);
+            }
+
+            const tbody = document.getElementById('results');
+            tbody.innerHTML = '';
+            for (const [name, amount] of Object.entries(ingredients)) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="emoji">${emojis[name]}</span>${name.charAt(0).toUpperCase() + name.slice(1)}</td>
+                    <td class="amount">${amount}g</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            const total = Object.values(ingredients).reduce((sum, v) => sum + v, 0);
+            const hydration = flour > 0 ? Math.round((ingredients.water / flour) * 100) : 0;
+            document.getElementById('hydration').textContent = `Hydration: ${hydration}%`;
+            document.getElementById('total').textContent = `Total weight: ${Math.round(total)}g`;
+        }
+
+        document.getElementById('flour').addEventListener('input', calculate);
+        document.getElementById('recipe').addEventListener('change', calculate);
+        calculate();
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
