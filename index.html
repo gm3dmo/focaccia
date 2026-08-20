@@ -127,6 +127,7 @@
         <div id="tab-ingredients" class="tab-content active">
             <label for="recipe">Recipe</label>
             <select id="recipe">
+                <option value="bryony">Bryony's Foccacia</option>
                 <option value="grand-hotel">The Grand Hotel Cookery School</option>
                 <option value="bon-appetit">Bon Appetit (Sarah Jampel)</option>
             </select>
@@ -134,7 +135,7 @@
             <input type="number" id="flour" value="500" min="1" step="1">
             <table>
                 <thead>
-                    <tr><th>Ingredient</th><th style="text-align:right">Amount (g)</th></tr>
+                    <tr><th>Ingredient</th><th style="text-align:right">Amount</th></tr>
                 </thead>
                 <tbody id="results"></tbody>
             </table>
@@ -142,20 +143,39 @@
             <div class="total" id="total"></div>
         </div>
         <div id="tab-method" class="tab-content method">
-            <ol>
-                <li>Mix the warm water, sugar, and yeast in a bowl. Let it sit for 5–10 minutes until frothy.</li>
-                <li>In a large bowl, combine flour and salt. Pour in the yeast mixture and olive oil. Stir until a shaggy dough forms.</li>
-                <li>Cover and let the dough rise in a warm place for 1–2 hours until doubled in size.</li>
-                <li>Oil a baking tray generously. Transfer the dough and stretch it to fill the tray. Drizzle more oil on top.</li>
-                <li>Dimple the surface with your fingertips. Optionally top with flaky salt, rosemary, or olives.</li>
-                <li>Let it rest for 20–30 minutes for a final rise.</li>
-                <li>Bake at 220°C (425°F) for 20–25 minutes until golden brown on top.</li>
-                <li>Remove from oven and let cool slightly before slicing. Enjoy!</li>
-            </ol>
+            <ol id="method-steps"></ol>
         </div>
     </div>
     <script>
         const recipes = {
+            bryony: {
+                name: "Bryony's Foccacia",
+                ratios: {
+                    water: 480 / 485,
+                    'dried yeast': 4 / 485,
+                    'barley malt': 10 / 485,
+                    oil: 15 / 485,
+                    salt: 10 / 485,
+                    'vital wheat gluten': 15 / 485
+                },
+                units: {
+                    oil: 'ml'
+                },
+                method: [
+                    'Whisk together the lukewarm water, barley malt, olive oil and yeast. Add the bread flour, salt and vital wheat gluten, then mix thoroughly.',
+                    'Cover for 10 minutes.',
+                    'With wet hands, stretch and fold the dough around 8 times: pull it up towards you, shake it gently, then fold it in.',
+                    'Cover for another 10 minutes, then repeat the stretch and folds with wet hands.',
+                    'Coat the dough with good-quality olive oil so it does not stick, then cover airtight.',
+                    'Proof in the fridge for at least 12 hours and up to 36 hours, or at room temperature for 2–3 hours. Judge it by the bubbles; in hot weather it may be ready in as little as 1½ hours.',
+                    'Line a 35 × 24 cm tray with baking paper and oil it generously. Place in the dough, tuck in the sides and ends like a burrito, then flip it over and cover.',
+                    'Let it rise for about 2 hours if chilled, or 30 minutes if proofed at room temperature.',
+                    'Hook your fingers underneath the dough and gently shake and stretch it into the corners of the tray.',
+                    'Drizzle with oil, dimple the dough deeply with a wiggling motion, and add your toppings.',
+                    'Bake in a 220°C fan oven for 18–25 minutes. For a crisper base, bake for 18 minutes on the paper, then remove the paper and bake directly on the metal tray for 5 minutes.',
+                    'Cool on a rack.'
+                ]
+            },
             'grand-hotel': {
                 name: 'The Grand Hotel Cookery School',
                 ratios: {
@@ -185,12 +205,16 @@
             honey: '🍯',
             salt: '🧂',
             yeast: '🫧',
-            oil: '🫒'
+            'dried yeast': '🫧',
+            oil: '🫒',
+            'barley malt': '🍯',
+            'vital wheat gluten': '🌾'
         };
 
         function calculate() {
             const recipeKey = document.getElementById('recipe').value;
-            const ratios = recipes[recipeKey].ratios;
+            const recipe = recipes[recipeKey];
+            const ratios = recipe.ratios;
             const flour = parseFloat(document.getElementById('flour').value) || 0;
             const ingredients = { flour };
             for (const [name, ratio] of Object.entries(ratios)) {
@@ -200,10 +224,11 @@
             const tbody = document.getElementById('results');
             tbody.innerHTML = '';
             for (const [name, amount] of Object.entries(ingredients)) {
+                const unit = recipe.units?.[name] || 'g';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><span class="emoji">${emojis[name]}</span>${name.charAt(0).toUpperCase() + name.slice(1)}</td>
-                    <td class="amount">${amount}g</td>
+                    <td class="amount">${amount}${unit}</td>
                 `;
                 tbody.appendChild(tr);
             }
@@ -212,6 +237,25 @@
             const hydration = flour > 0 ? Math.round((ingredients.water / flour) * 100) : 0;
             document.getElementById('hydration').textContent = `Hydration: ${hydration}%`;
             document.getElementById('total').textContent = `Total weight: ${Math.round(total)}g`;
+
+            const defaultMethod = [
+                'Mix the warm water, sugar, and yeast in a bowl. Let it sit for 5–10 minutes until frothy.',
+                'In a large bowl, combine flour and salt. Pour in the yeast mixture and olive oil. Stir until a shaggy dough forms.',
+                'Cover and let the dough rise in a warm place for 1–2 hours until doubled in size.',
+                'Oil a baking tray generously. Transfer the dough and stretch it to fill the tray. Drizzle more oil on top.',
+                'Dimple the surface with your fingertips. Optionally top with flaky salt, rosemary, or olives.',
+                'Let it rest for 20–30 minutes for a final rise.',
+                'Bake at 220°C (425°F) for 20–25 minutes until golden brown on top.',
+                'Remove from oven and let cool slightly before slicing. Enjoy!'
+            ];
+            const method = recipe.method || defaultMethod;
+            const methodSteps = document.getElementById('method-steps');
+            methodSteps.innerHTML = '';
+            for (const step of method) {
+                const li = document.createElement('li');
+                li.textContent = step;
+                methodSteps.appendChild(li);
+            }
         }
 
         document.getElementById('flour').addEventListener('input', calculate);
